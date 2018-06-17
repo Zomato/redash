@@ -59,6 +59,36 @@ class Presto(BaseQueryRunner):
         }
 
     @classmethod
+    def configuration_schema(cls):
+        return {
+            'type': 'object',
+            'properties': {
+                'host': {
+                    'type': 'string'
+                },
+                'port': {
+                    'type': 'number'
+                },
+                'schema': {
+                    'type': 'string'
+                },
+                'catalog': {
+                    'type': 'string'
+                },
+                'username': {
+                    'type': 'string'
+                },
+                'user_impersonation': {
+                    'type': 'boolean',
+                    'title': 'User impersonation allows you to send users email address as username on presto, Instead of the default username being sent.',
+                    'default': False
+                }
+            },
+            "order": ['host', 'port', 'catalog', 'schema', 'username', 'user_impersonation'],
+            'required': ['host']
+        }
+
+    @classmethod
     def enabled(cls):
         return enabled
 
@@ -86,7 +116,6 @@ class Presto(BaseQueryRunner):
 
         for row in results['rows']:
             table_name = '{}.{}'.format(row['table_schema'], row['table_name'])
-            
             if table_name not in schema:
                 schema[table_name] = {'name': table_name, 'columns': []}
 
@@ -95,12 +124,19 @@ class Presto(BaseQueryRunner):
         return schema.values()
 
     def run_query(self, query, user):
+        should_impersonate_user = self.configuration.get('user_impersonation', False)
+        if not should_impersonate_user or user is None:
+            username = self.configuration.get('username', 'redash')
+        else:
+            username = user.email
+
         connection = presto.connect(
-                host=self.configuration.get('host', ''),
-                port=self.configuration.get('port', 8080),
-                username=self.configuration.get('username', 'redash'),
-                catalog=self.configuration.get('catalog', 'hive'),
-                schema=self.configuration.get('schema', 'default'))
+            host=self.configuration.get('host', ''),
+            port=self.configuration.get('port', 8080),
+            username=username,
+            catalog=self.configuration.get('catalog', 'hive'),
+            schema=self.configuration.get('schema', 'default')
+        )
 
         cursor = connection.cursor()
 
