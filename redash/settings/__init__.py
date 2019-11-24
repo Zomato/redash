@@ -363,3 +363,6 @@ SQLPARSE_FORMAT_OPTIONS = {
     'reindent': parse_boolean(os.environ.get('SQLPARSE_FORMAT_REINDENT', 'true')),
     'keyword_case': os.environ.get('SQLPARSE_FORMAT_KEYWORD_CASE', 'upper'),
 }
+
+# Public Dashboards Access
+FEATURE_DISABLE_PUBLIC_DASHBOARDS = parse_boolean(os.environ.get("REDASH_FEATURE_DISABLE_PUBLIC_DASHBOARDS", "true"))
