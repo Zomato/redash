@@ -59,8 +59,12 @@ class Presto(BaseQueryRunner):
                 'password': {
                     'type': 'string'
                 },
+                'sql_max_rows_limit': {
+                    'type': 'number',
+                    'default': 100000
+                }
             },
-            'order': ['host', 'protocol', 'port', 'username', 'password', 'schema', 'catalog'],
+            'order': ['host', 'protocol', 'port', 'username', 'password', 'schema', 'catalog', 'sql_max_rows_limit'],
             'required': ['host']
         }
 
@@ -96,6 +100,10 @@ class Presto(BaseQueryRunner):
             schema[table_name]['columns'].append(row['column_name'])
 
         return schema.values()
+
+    def apply_limit_to_sql(self, query):
+        limit = self.configuration.get('sql_max_rows_limit', settings.DEFAULT_SQL_MAX_ROWS_LIMIT)
+        return self._apply_limit_to_sql(query, limit)
 
     def run_query(self, query, user):
         connection = presto.connect(

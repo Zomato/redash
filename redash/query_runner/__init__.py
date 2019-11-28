@@ -7,6 +7,7 @@ from six import text_type
 
 from redash import settings
 from redash.utils import json_loads
+from redash.utils.sql_parse import ParsedQuery
 
 logger = logging.getLogger(__name__)
 
@@ -134,6 +135,8 @@ class BaseQueryRunner(object):
             'configuration_schema': cls.configuration_schema()
         }
 
+    def apply_limit_to_sql(self, query):
+        return query
 
 class BaseSQLQueryRunner(BaseQueryRunner):
 
@@ -152,6 +155,15 @@ class BaseSQLQueryRunner(BaseQueryRunner):
             if type(tables_dict[t]) == dict:
                 res = self._run_query_internal('select count(*) as cnt from %s' % t)
                 tables_dict[t]['size'] = res[0]['cnt']
+
+    def _apply_limit_to_sql(self, query, limit):
+        sql = query
+        if settings.FEATURE_ENFORCE_MAX_QUERY_ROWS_LIMIT:
+            parsed_query = sql_parse.ParsedQuery(query)
+            if parsed_query.is_select():
+                sql = parsed_query.get_query_with_new_limit(limit)
+
+        return sql
 
 
 class BaseHTTPQueryRunner(BaseQueryRunner):

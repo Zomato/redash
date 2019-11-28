@@ -363,3 +363,6 @@ SQLPARSE_FORMAT_OPTIONS = {
     'reindent': parse_boolean(os.environ.get('SQLPARSE_FORMAT_REINDENT', 'true')),
     'keyword_case': os.environ.get('SQLPARSE_FORMAT_KEYWORD_CASE', 'upper'),
 }
+
+DEFAULT_SQL_MAX_ROWS_LIMIT = int(os.environ.get("REDASH_DEFAULT_SQL_MAX_ROWS_LIMIT", 100000))
+FEATURE_ENFORCE_MAX_QUERY_ROWS_LIMIT = parse_boolean(os.environ.get("REDASH_FEATURE_ENFORCE_QUERY_ROWS_LIMIT", "false"))

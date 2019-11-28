@@ -15,7 +15,7 @@ TYPES_MAP = {
 }
 
 
-class Druid(BaseQueryRunner):
+class Druid(BaseSQLQueryRunner):
     noop_query = "SELECT 1"
 
     @classmethod
@@ -34,15 +34,23 @@ class Druid(BaseQueryRunner):
                 "scheme": {
                     "type": "string",
                     "default": "http"
+                },
+                "sql_max_rows_limit": {
+                    "type": "number",
+                    "default": 100000
                 }
             },
-            "order": ['scheme', 'host', 'port'],
+            "order": ['scheme', 'host', 'port', 'sql_max_rows_limit'],
             "required": ['host']
         }
 
     @classmethod
     def enabled(cls):
         return enabled
+
+    def apply_limit_to_sql(self, query):
+        limit = self.configuration.get('sql_max_rows_limit', settings.DEFAULT_SQL_MAX_ROWS_LIMIT)
+        return self._apply_limit_to_sql(query, limit)
 
     def run_query(self, query, user):
         connection = connect(host=self.configuration['host'],
