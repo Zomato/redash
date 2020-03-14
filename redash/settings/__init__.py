@@ -1,6 +1,7 @@
 import os
 import importlib
 import ssl
+import datetime
 from funcy import distinct, remove
 from flask_talisman import talisman
 
@@ -363,6 +364,10 @@ SQLPARSE_FORMAT_OPTIONS = {
     'reindent': parse_boolean(os.environ.get('SQLPARSE_FORMAT_REINDENT', 'true')),
     'keyword_case': os.environ.get('SQLPARSE_FORMAT_KEYWORD_CASE', 'upper'),
 }
+
+# Cookie & Session Configuration
+REMEMBER_COOKIE_DURATION = datetime.timedelta(seconds=int(os.environ.get("REMEMBER_COOKIE_DURATION", "86400")))
+PERMANENT_SESSION_LIFETIME = datetime.timedelta(seconds=int(os.environ.get("PERMANENT_SESSION_LIFETIME", "86400")))
 
 # Public Dashboards Access
 FEATURE_DISABLE_PUBLIC_DASHBOARDS = parse_boolean(os.environ.get("REDASH_FEATURE_DISABLE_PUBLIC_DASHBOARDS", "true"))
