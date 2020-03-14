@@ -368,3 +368,6 @@ SQLPARSE_FORMAT_OPTIONS = {
 # Cookie & Session Configuration
 REMEMBER_COOKIE_DURATION = datetime.timedelta(seconds=int(os.environ.get("REMEMBER_COOKIE_DURATION", "86400")))
 PERMANENT_SESSION_LIFETIME = datetime.timedelta(seconds=int(os.environ.get("PERMANENT_SESSION_LIFETIME", "86400")))
+
+# Public Dashboards Access
+FEATURE_DISABLE_PUBLIC_DASHBOARDS = parse_boolean(os.environ.get("REDASH_FEATURE_DISABLE_PUBLIC_DASHBOARDS", "true"))

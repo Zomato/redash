@@ -59,8 +59,22 @@ class Presto(BaseQueryRunner):
                 'password': {
                     'type': 'string'
                 },
+                'source': {
+                    'type': 'string',
+                    'title': 'Source to be passed to presto',
+                    'default': 'pyhive'
+                },
+                'blacklisted_table_schemas': {
+                    'type': 'string',
+                    'title': 'Comma seperated list of schemas to be discarded while querying information_schema for table metadata'
+                },
+                'user_impersonation': {
+                    'type': 'boolean',
+                    'title': 'Allows passing logged-in users email address as username to presto, Instead of the default username being sent',
+                    'default': False
+                }
             },
-            'order': ['host', 'protocol', 'port', 'username', 'password', 'schema', 'catalog'],
+            'order': ['host', 'protocol', 'port', 'username', 'password', 'schema', 'catalog', 'source', 'blacklisted_table_schemas', 'user_impersonation'],
             'required': ['host']
         }
 
@@ -74,11 +88,17 @@ class Presto(BaseQueryRunner):
 
     def get_schema(self, get_stats=False):
         schema = {}
+
+        default_table_schemas = ['pg_catalog', 'information_schema']
+        blacklisted_table_schemas = self.configuration.get('blacklisted_table_schemas', '')
+        final_table_schemas = default_table_schemas + map(str.strip, blacklisted_table_schemas.split(','))
+        table_schemas = ', '.join("'{0}'".format(w) for w in final_table_schemas)
+
         query = """
         SELECT table_schema, table_name, column_name
         FROM information_schema.columns
-        WHERE table_schema NOT IN ('pg_catalog', 'information_schema')
-        """
+        WHERE table_schema NOT IN ({0})
+        """.format(table_schemas)
 
         results, error = self.run_query(query, None)
 
@@ -98,14 +118,22 @@ class Presto(BaseQueryRunner):
         return schema.values()
 
     def run_query(self, query, user):
+        should_impersonate_user = self.configuration.get('user_impersonation', False)
+        if not should_impersonate_user or user is None:
+            username = self.configuration.get('username', 'redash')
+        else:
+            username = user.email
+
         connection = presto.connect(
             host=self.configuration.get('host', ''),
             port=self.configuration.get('port', 8080),
             protocol=self.configuration.get('protocol', 'http'),
-            username=self.configuration.get('username', 'redash'),
+            username=username,
             password=(self.configuration.get('password') or None),
             catalog=self.configuration.get('catalog', 'hive'),
-            schema=self.configuration.get('schema', 'default'))
+            schema=self.configuration.get('schema', 'default'),
+            source=self.configuration.get('source', 'pyhive')
+        )
 
         cursor = connection.cursor()
 
