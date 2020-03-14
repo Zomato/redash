@@ -1,3 +1,4 @@
+import logging
 from flask import request, url_for
 from funcy import project, partial
 
@@ -245,6 +246,10 @@ class PublicDashboardResource(BaseResource):
         :param token: An API key for a public dashboard.
         :>json array widgets: An array of arrays of :ref:`public widgets <public-widget-label>`, corresponding to the rows and columns the widgets are displayed in
         """
+        if settings.FEATURE_DISABLE_PUBLIC_DASHBOARDS:
+            logging.info("Disabled public dashboards.")
+            abort(403, message="The feature is disabled due to security reasons.")
+
         if not isinstance(self.current_user, models.ApiUser):
             api_key = get_object_or_404(models.ApiKey.get_by_api_key, token)
             dashboard = api_key.object
@@ -263,6 +268,10 @@ class DashboardShareResource(BaseResource):
         :>json string public_url: The URL for anonymous access to the dashboard.
         :>json api_key: The API key to use when accessing it.
         """
+        if settings.FEATURE_DISABLE_PUBLIC_DASHBOARDS:
+            logging.info("Disabled public dashboards.")
+            abort(403, message="The feature is disabled due to security reasons.")
+
         dashboard = models.Dashboard.get_by_id_and_org(dashboard_id, self.current_org)
         require_admin_or_owner(dashboard.user_id)
         api_key = models.ApiKey.create_for_object(dashboard, self.current_user)
