@@ -43,7 +43,8 @@ class EditDestination extends React.Component {
 
   saveDestination = (values, successCallback, errorCallback) => {
     const { destination } = this.state;
-    helper.updateTargetWithValues(destination, values);
+    const baseKeys = ['name'];
+    helper.updateTargetWithValues(destination, values, baseKeys);
     destination.$save(
       () => successCallback('Saved.'),
       (error) => {
@@ -79,7 +80,8 @@ class EditDestination extends React.Component {
 
   renderForm() {
     const { destination, type } = this.state;
-    const fields = helper.getFields(type, destination);
+    const extraFields = [];
+    const fields = helper.getFields(type, extraFields, destination);
     const formProps = {
       fields,
       type,

@@ -58,33 +58,51 @@ function setDefaultValueForCheckboxes(configurationSchema, options = {}) {
   }
 }
 
-function getFields(type = {}, target = { options: {} }) {
+function getFields(type = {}, extraFields = [], target = { options: {} }) {
   const configurationSchema = type.configuration_schema;
   normalizeSchema(configurationSchema);
   setDefaultValueForCheckboxes(configurationSchema, target.options);
 
   const isNewTarget = !target.id;
-  const inputs = [
-    {
-      name: 'name',
-      title: 'Name',
-      type: 'text',
-      required: true,
-      initialValue: target.name,
+  const defaults = [{
+    name: 'name',
+    title: 'Name',
+    type: 'text',
+    required: true,
+    initialValue: target.name,
+    contentAfter: React.createElement('hr'),
+    placeholder: `My ${type.name}`,
+    autoFocus: isNewTarget,
+  }];
+
+  for (let i = 0; i < extraFields.length; i += 1) {
+    defaults.push({
+      name: extraFields[i].name,
+      title: extraFields[i].title,
+      type: extraFields[i].type,
+      required: extraFields[i].required,
+      initialValue: extraFields[i].initialValue,
       contentAfter: React.createElement('hr'),
-      placeholder: `My ${type.name}`,
+      placeholder: extraFields[i].placeholder,
       autoFocus: isNewTarget,
-    },
+    });
+  }
+
+  const inputs = [
+    ...defaults,
     ...orderedInputs(configurationSchema.properties, configurationSchema.order, target.options),
   ];
 
   return inputs;
 }
 
-function updateTargetWithValues(target, values) {
-  target.name = values.name;
+function updateTargetWithValues(target, values, baseKeys = []) {
+  for (let i = 0; i < baseKeys.length; i += 1) {
+    target[baseKeys[i]] = values[baseKeys[i]];
+  }
+
   Object.keys(values).forEach((key) => {
-    if (key !== 'name') {
+    if (!baseKeys.includes(key)) {
       target.options[key] = values[key];
     }
   });

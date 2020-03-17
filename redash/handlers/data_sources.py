@@ -51,6 +51,7 @@ class DataSourceResource(BaseResource):
 
         data_source.type = req['type']
         data_source.name = req['name']
+        data_source.queue_name = req['queue_name']
         models.db.session.add(data_source)
 
         try:

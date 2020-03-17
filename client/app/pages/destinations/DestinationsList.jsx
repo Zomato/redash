@@ -41,7 +41,8 @@ class DestinationsList extends React.Component {
 
   createDestination = (selectedType, values) => {
     const target = { options: {}, type: selectedType.type };
-    helper.updateTargetWithValues(target, values);
+    const baseKeys = ['name'];
+    helper.updateTargetWithValues(target, values, baseKeys);
 
     return Destination.save(target).$promise.then((destination) => {
       this.setState({ loading: true });

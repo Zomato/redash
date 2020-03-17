@@ -44,7 +44,8 @@ class EditDataSource extends React.Component {
 
   saveDataSource = (values, successCallback, errorCallback) => {
     const { dataSource } = this.state;
-    helper.updateTargetWithValues(dataSource, values);
+    const baseKeys = ['name', 'queue_name'];
+    helper.updateTargetWithValues(dataSource, values, baseKeys);
     dataSource.$save(
       () => successCallback('Saved.'),
       (error) => {
@@ -95,8 +96,17 @@ class EditDataSource extends React.Component {
 
   renderForm() {
     const { dataSource, type } = this.state;
-    const fields = helper.getFields(type, dataSource);
     const helpTriggerType = `DS_${toUpper(type.type)}`;
+
+    const extraFields = [{
+      name: 'queue_name',
+      title: 'Queue Name',
+      type: 'text',
+      required: true,
+      initialValue: dataSource.queue_name,
+      placeholder: 'queries',
+    }];
+    const fields = helper.getFields(type, extraFields, dataSource);
     const formProps = {
       fields,
       type,

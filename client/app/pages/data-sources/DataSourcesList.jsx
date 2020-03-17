@@ -43,7 +43,8 @@ class DataSourcesList extends React.Component {
 
   createDataSource = (selectedType, values) => {
     const target = { options: {}, type: selectedType.type };
-    helper.updateTargetWithValues(target, values);
+    const baseKeys = ['name', 'queue_name'];
+    helper.updateTargetWithValues(target, values, baseKeys);
 
     return DataSource.save(target).$promise.then((dataSource) => {
       this.setState({ loading: true });
@@ -59,8 +60,18 @@ class DataSourcesList extends React.Component {
 
   showCreateSourceDialog = () => {
     recordEvent('view', 'page', 'data_sources/new');
+    const extraFields = [{
+      name: 'queue_name',
+      title: 'Queue Name',
+      type: 'text',
+      required: true,
+      initialValue: 'queries',
+      placeholder: 'queries',
+    }];
+
     CreateSourceDialog.showModal({
       types: this.state.dataSourceTypes,
+      extraFields,
       sourceType: 'Data Source',
       imageFolder: IMG_ROOT,
       helpTriggerPrefix: 'DS_',
